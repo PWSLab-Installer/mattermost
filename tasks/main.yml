@@ -46,7 +46,7 @@
 
 - name: Creating MYSQL MMUSER DB
   command: mysql --host=localhost --user=root  -e "CREATE DATABASE mattermost;"
- ignore_errors: yes
+  ignore_errors: yes
 
 - name: Granting Permissions
   command: mysql --host=localhost --user=root  -e "GRANT ALL PRIVILEGES ON mattermost.* TO 'mmuser'@'%';"
