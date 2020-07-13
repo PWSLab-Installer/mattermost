@@ -86,7 +86,8 @@
 - name: reload service mattermost, in all cases
   systemd:
     name: mattermost
-    state: reloaded
+    daemonreload: yes
+    state: started
     enabled: yes
 
 - name: Sets Nginx conf file
