@@ -1,0 +1,99 @@
+---
+
+- name: Create Mattermost Directory
+  file:
+    path: ~/mattermost
+    state: directory
+
+- name: Get dokku
+  get_url:
+    url: https://releases.mattermost.com/{{ matter_version }}/mattermost-{{ matter_version }}-linux-amd64.tar.gz
+    dest: ~/mattermost/
+
+- name: Unarchive the file
+  unarchive:
+      src: ~/mattermost/mattermost-{{ matter_version }}-linux-amd64.tar.gz
+      dest: ~/mattermost
+
+
+- name: Create Mattermost Directory
+  file:
+    path: /opt/mattermost/data
+    state: directory
+
+
+- name: Synchronization files
+  synchronize:
+    src: ~/mattermost/mattermost/
+    dest: /opt/mattermost/
+
+- name: Add the user Mattermost
+  user:
+    name: mattermost
+    group: mattermost
+    system: true
+
+- name: Change file ownership, group and permissions
+  file:
+    path: /opt/mattermost
+    owner: mattermost
+    group: mattermost
+    mode: 'g+w'
+
+- name: Creating MYSQL User
+      command: mysql --host=localhost --user=root  -e "CREATE USER 'mmuser'@'%' IDENTIFIED BY 'mmuser';"
+      ignore_errors: yes
+
+- name: Creating MYSQL MMUSER DB
+      command: mysql --host=localhost --user=root  -e "CREATE DATABASE mattermost;"
+      ignore_errors: yes
+
+- name: Granting Permissions
+      command: mysql --host=localhost --user=root  -e "GRANT ALL PRIVILEGES ON mattermost.* TO 'mmuser'@'%';"
+      ignore_errors: yes
+
+- name: Set Mattermost Config file
+  template:
+    src: "matter_config.json.j2"
+    dest: /opt/mattermost/config/config.json
+
+- name: Set Mattermost Config file
+  template:
+    src: "mattermost.service.j2"
+    dest: /lib/systemd/system/mattermost.service
+
+- name: reload service mattermost, in all cases
+  systemd:
+    name: mattermost
+    state: reloaded
+    enabled: yes
+
+- pause:
+    prompt: "Please Type Domain Name"
+    echo: yes
+  register: mattermost_doamin_name_result
+
+- pause:
+    prompt: "Please Type Your Email ID"
+    echo: yes
+  register: your_email_id_result
+
+- set_fact:
+        mattermost_doamin_name: "{{ mattermost_doamin_name_result.user_input }}"
+        your_email_id: "{{ your_email_id_result.user_input }}"
+
+- name: Sets Nginx conf file
+  template:
+    src: "mattermost_nginx.conf.j2"
+    dest: /etc/nginx/sites-available/{{ mattermost_doamin_name }}
+
+- name: Create symbolic link 
+  file:
+    src: /etc/nginx/sites-available/{{ mattermost_doamin_name }}
+    dest: /etc/nginx/sites-enabled/{{ mattermost_doamin_name }}
+    state: link
+
+- name: Restart service Nginx, if not started
+  service:
+    name: nginx
+    state: restarted

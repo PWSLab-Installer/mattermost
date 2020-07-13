@@ -1,0 +1,75 @@
+---
+
+
+- hosts: localhost
+  connection: local
+  vars:
+    matter_version: '5.24.2'
+    certbot_create_if_missing: true
+    certbot_admin_email: "{{ your_email_id }}"
+    certbot_certs: 
+        - domains:
+            - "{{ mattermost_doamin_name }}"
+# Roles are imported from ansible
+
+  tasks:
+    
+    - name: Fetch Code Server Role
+      git:
+        repo: https://ro:vSsoZcsMtv3BXj4Apb2w@pwslab.org/ansible/codeserver-playbook.git
+        dest: /root/.ansible/roles/pwslab.mattermost
+        version: master
+        force: yes
+
+    - name: Install Role NGINX
+      local_action: command ansible-galaxy install -f geerlingguy.nginx 
+
+    - name: Install Role MYSQL
+      local_action: command ansible-galaxy install -f geerlingguy.mysql
+
+    - name: Install Role CertBot
+      local_action: command ansible-galaxy install -f geerlingguy.certbot 
+
+      - name: Check if Nginx is already installed
+      stat: path=/usr/sbin/nginx
+      register: nginx_exists
+
+    - name: Check if MYSQL is already installed
+      stat: path=/usr/bin/mysql
+      register: mysql_exists
+
+    - name: Applying role Nginx
+      command: mv ~/.ansible/roles/geerlingguy.nginx ~/.ansible/roles/pwslab.nginx
+      when: not nginx_exists.stat.exists
+      ignore_errors: yes
+
+    - name: Applying role MYSQL
+      command: mv ~/.ansible/roles/geerlingguy.mysql ~/.ansible/roles/pwslab.mysql
+      when: not mysql_exists.stat.exists
+      ignore_errors: yes
+
+    - name: Applying role Certbot
+      command: mv ~/.ansible/roles/geerlingguy.certbot ~/.ansible/roles/pwslab.certbot
+      when: not nginx_exists.stat.exists
+      ignore_errors: yes
+
+    - name: Installing NGINX
+      include_role:
+        name: pwslab.nginx
+      when: not nginx_exists.stat.exists
+    
+    - name: Installing MYSQL
+      include_role:
+          name: pwslab.mysql
+      when: not mysql_exists.stat.exists
+
+    - name: Installing mattermost
+      include_role:
+        name: pwslab.mattermost
+    
+    - name: Installing Certbot
+      include_role:
+        name: pwslab.certbot
+
+#########################################################################################################################
+
