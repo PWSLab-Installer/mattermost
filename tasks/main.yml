@@ -86,7 +86,7 @@
 - name: reload service mattermost, in all cases
   systemd:
     name: mattermost
-    daemonreload: yes
+    daemon_reload: yes
     state: started
     enabled: yes
 
