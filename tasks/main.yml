@@ -101,7 +101,7 @@
     dest: /etc/nginx/sites-enabled/{{ mattermost_doamin_name }}
     state: link
 
-- name: Restart service Nginx, if not started
-  service:
-    name: nginx
-    state: restarted
+# - name: Restart service Nginx, if not started
+#   service:
+#     name: nginx
+#     state: restarted
