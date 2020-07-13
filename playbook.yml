@@ -14,9 +14,9 @@
 
   tasks:
     
-    - name: Fetch Code Server Role
+    - name: Fetch Mattermost Role
       git:
-        repo: https://ro:vSsoZcsMtv3BXj4Apb2w@pwslab.org/ansible/codeserver-playbook.git
+        repo: https://ro:vSsoZcsMtv3BXj4Apb2w@pwslab.org/ansible/mattermost-playbook.git
         dest: /root/.ansible/roles/pwslab.mattermost
         version: master
         force: yes
@@ -30,7 +30,7 @@
     - name: Install Role CertBot
       local_action: command ansible-galaxy install -f geerlingguy.certbot 
 
-      - name: Check if Nginx is already installed
+    - name: Check if Nginx is already installed
       stat: path=/usr/sbin/nginx
       register: nginx_exists
 
