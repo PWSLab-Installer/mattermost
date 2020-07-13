@@ -5,7 +5,7 @@
     path: ~/mattermost
     state: directory
 
-- name: Get dokku
+- name: Get Mattermost
   get_url:
     url: https://releases.mattermost.com/{{ matter_version }}/mattermost-{{ matter_version }}-linux-amd64.tar.gz
     dest: ~/mattermost/
@@ -26,6 +26,11 @@
   synchronize:
     src: ~/mattermost/mattermost/
     dest: /opt/mattermost/
+
+- name: Ensure group "mattermost" exists
+  group:
+    name: mattermost
+    state: present
 
 - name: Add the user Mattermost
   user:
