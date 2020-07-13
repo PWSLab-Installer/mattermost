@@ -1,5 +1,21 @@
 ---
 
+
+- pause:
+    prompt: "Please Type Domain Name"
+    echo: yes
+  register: mattermost_doamin_name_result
+
+- pause:
+    prompt: "Please Type Your Email ID"
+    echo: yes
+  register: your_email_id_result
+
+- set_fact:
+        mattermost_doamin_name: "{{ mattermost_doamin_name_result.user_input }}"
+        your_email_id: "{{ your_email_id_result.user_input }}"
+
+
 - name: Create Mattermost Directory
   file:
     path: ~/mattermost
@@ -72,20 +88,6 @@
     name: mattermost
     state: reloaded
     enabled: yes
-
-- pause:
-    prompt: "Please Type Domain Name"
-    echo: yes
-  register: mattermost_doamin_name_result
-
-- pause:
-    prompt: "Please Type Your Email ID"
-    echo: yes
-  register: your_email_id_result
-
-- set_fact:
-        mattermost_doamin_name: "{{ mattermost_doamin_name_result.user_input }}"
-        your_email_id: "{{ your_email_id_result.user_input }}"
 
 - name: Sets Nginx conf file
   template:
