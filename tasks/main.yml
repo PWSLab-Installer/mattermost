@@ -93,6 +93,14 @@
   template:
     src: "mattermost.service.j2"
     dest: /lib/systemd/system/mattermost.service
+  when: ubuntu_os.stdout | regex_search("20.04") or ubuntu_os.stdout | regex_search("18.04") 
+
+  - name: Set Mattermost Config file
+  template:
+    src: "mattermost.service.j2"
+    dest: /etc/systemd/system/mattermost.service
+  when:
+        - cent_os.stdout | regex_search("CentOS")
 
 - name: reload service mattermost, in all cases
   systemd:
