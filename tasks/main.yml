@@ -1,6 +1,17 @@
 ---
 
 
+- name: Check the version of CentOS
+  command: cat /etc/centos-release
+  register: cent_os
+  ignore_errors: yes
+
+- name: Check if version of Ubuntu
+  shell: |
+    lsb_release -d
+  register: ubuntu_os
+  ignore_errors: yes
+
 - pause:
     prompt: "Please Type Domain Name"
     echo: yes
@@ -94,12 +105,21 @@
   template:
     src: "mattermost_nginx.conf.j2"
     dest: /etc/nginx/sites-available/{{ mattermost_doamin_name }}
+  when: ubuntu_os.stdout | regex_search("20.04") or ubuntu_os.stdout | regex_search("18.04") 
 
+- name: Sets Nginx conf file
+  template:
+    src: "nginx.conf"
+    dest: /etc/nginx/conf.d/{{ your_domain_name }}
+  when:
+        - cent_os.stdout | regex_search("CentOS")
+    
 - name: Create symbolic link 
   file:
     src: /etc/nginx/sites-available/{{ mattermost_doamin_name }}
     dest: /etc/nginx/sites-enabled/{{ mattermost_doamin_name }}
     state: link
+  when: ubuntu_os.stdout | regex_search("20.04") or ubuntu_os.stdout | regex_search("18.04") 
 
 # - name: Restart service Nginx, if not started
 #   service:
