@@ -116,7 +116,7 @@
     mode: 'g+w'
 
 - name: Creating MYSQL User
-  command: mysql --host=localhost --user=root  -e "CREATE USER 'mmuser'@'%' IDENTIFIED BY 'mmuser';"
+  command: mysql --host=localhost --user=root  -e "CREATE USER 'mmuser'@'localhost' IDENTIFIED BY 'mmuser';"
   ignore_errors: yes
 
 - name: Creating MYSQL MMUSER DB
