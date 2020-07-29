@@ -14,62 +14,69 @@
 
   tasks:
     
-    - name: Fetch Mattermost Role
-      git:
-        repo: https://ro:vSsoZcsMtv3BXj4Apb2w@pwslab.org/ansible/mattermost-playbook.git
-        dest: /root/.ansible/roles/pwslab.mattermost
-        version: master
-        force: yes
+    -   name: Check the version of OS
+        command: hostnamectl
+        register: os_check
+        ignore_errors: yes 
 
-    - name: Install Role NGINX
-      local_action: command ansible-galaxy install -f geerlingguy.nginx 
+    -   name: Fetch Mattermost Role
+        git:
+          repo: https://ro:vSsoZcsMtv3BXj4Apb2w@pwslab.org/ansible/mattermost-playbook.git
+          dest: /root/.ansible/roles/pwslab.mattermost
+          version: master
+          force: yes
 
-    - name: Install Role MYSQL
-      local_action: command ansible-galaxy install -f geerlingguy.mysql
+    -   name: Install Role NGINX
+        local_action: command ansible-galaxy install -f geerlingguy.nginx 
 
-    - name: Install Role CertBot
-      local_action: command ansible-galaxy install -f geerlingguy.certbot 
+    -   name: Install Role MYSQL
+        local_action: command ansible-galaxy install -f geerlingguy.mysql
 
-    - name: Check if Nginx is already installed
-      stat: path=/usr/sbin/nginx
-      register: nginx_exists
+    -   name: Install Role CertBot
+        local_action: command ansible-galaxy install -f geerlingguy.certbot 
 
-    - name: Check if MYSQL is already installed
-      stat: path=/usr/bin/mysql
-      register: mysql_exists
+    -   name: Check if Nginx is already installed
+        stat: path=/usr/sbin/nginx
+        register: nginx_exists
 
-    - name: Applying role Nginx
-      command: mv ~/.ansible/roles/geerlingguy.nginx ~/.ansible/roles/pwslab.nginx
-      when: not nginx_exists.stat.exists
-      ignore_errors: yes
+    -   name: Check if MYSQL is already installed
+        stat: path=/usr/bin/mysql
+        register: mysql_exists
 
-    - name: Applying role MYSQL
-      command: mv ~/.ansible/roles/geerlingguy.mysql ~/.ansible/roles/pwslab.mysql
-      when: not mysql_exists.stat.exists
-      ignore_errors: yes
+    -   name: Applying role Nginx
+        command: mv ~/.ansible/roles/geerlingguy.nginx ~/.ansible/roles/pwslab.nginx
+        when: not nginx_exists.stat.exists
+        ignore_errors: yes
 
-    - name: Applying role Certbot
-      command: mv ~/.ansible/roles/geerlingguy.certbot ~/.ansible/roles/pwslab.certbot
-      when: not nginx_exists.stat.exists
-      ignore_errors: yes
+    -   name: Applying role MYSQL
+        command: mv ~/.ansible/roles/geerlingguy.mysql ~/.ansible/roles/pwslab.mysql
+        when: not mysql_exists.stat.exists
+        ignore_errors: yes
 
-    - name: Installing NGINX
-      include_role:
-        name: pwslab.nginx
-      when: not nginx_exists.stat.exists
+    -   name: Applying role Certbot
+        command: mv ~/.ansible/roles/geerlingguy.certbot ~/.ansible/roles/pwslab.certbot
+        when: not nginx_exists.stat.exists
+        ignore_errors: yes
+
+    -   name: Installing NGINX
+        include_role:
+          name: pwslab.nginx
+        when: not nginx_exists.stat.exists
     
-    - name: Installing MYSQL
-      include_role:
-          name: pwslab.mysql
-      when: not mysql_exists.stat.exists
+    -   name: Installing MYSQL
+        include_role:
+            name: pwslab.mysql
+        when: 
+            - not mysql_exists.stat.exists
+            - not os_check.stdout | regex_search("CentOS Linux 7")
 
-    - name: Installing mattermost
-      include_role:
-        name: pwslab.mattermost
-    
-    - name: Installing Certbot
-      include_role:
-        name: pwslab.certbot
+    -   name: Installing mattermost
+        include_role:
+          name: pwslab.mattermost
+      
+    -   name: Installing Certbot
+        include_role:
+          name: pwslab.certbot
 
 #########################################################################################################################
 

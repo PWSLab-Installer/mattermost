@@ -1,16 +1,16 @@
 ---
 
 
-- name: Check the version of CentOS
-  command: cat /etc/centos-release
-  register: cent_os
-  ignore_errors: yes
+# - name: Check the version of CentOS
+#   command: cat /etc/centos-release
+#   register: os_check
+#   ignore_errors: yes
 
-- name: Check if version of Ubuntu
-  shell: |
-    lsb_release -d
-  register: ubuntu_os
-  ignore_errors: yes
+# - name: Check if version of Ubuntu
+#   shell: |
+#     lsb_release -d
+#   register: os_check
+#   ignore_errors: yes
 
 - pause:
     prompt: "Please Type Domain Name"
@@ -26,6 +26,48 @@
         mattermost_doamin_name: "{{ mattermost_doamin_name_result.user_input }}"
         your_email_id: "{{ your_email_id_result.user_input }}"
 
+-   name: Add MariaDB - CentOS 7
+        lineinfile:
+            path: /etc/yum.repos.d/MariaDB10.repo
+            line: "{{ item }}"
+            create: yes
+        loop:
+            - "[mariadb]"
+            - name = MariaDB
+            - baseurl = http://yum.mariadb.org/10.1/centos7-amd64
+            - gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+            - gpgcheck=1
+        when: 
+            - os_check.stdout | regex_search("CentOS Linux 7")
+
+    # -   name: Remove old entries - CentOS 7
+    #     command: yum remove mariadb-server mariadb mariadb-libs -y
+    #     when: 
+    #         - os_check.stdout | regex_search("CentOS Linux 7")
+
+-   name: CleanUP cache - CentOS 7
+    command: yum clean all
+    when: 
+        - os_check.stdout | regex_search("CentOS Linux 7")
+
+-   name: Initiate Mariadb - CentOS 7
+    yum: 
+        name: "{{ item }}"
+        state: present
+    loop:
+        - MariaDB-server 
+        - MariaDB-client 
+        - MySQL-python
+    when: 
+        - os_check.stdout | regex_search("CentOS Linux 7")
+
+-   name: Start the MYSQL service - CentOS 7
+    service:
+        name: mariadb
+        enabled: yes
+        state: started
+    when: 
+        - os_check.stdout | regex_search("CentOS Linux 7")
 
 - name: Create Mattermost Directory
   file:
@@ -70,6 +112,7 @@
     path: /opt/mattermost
     owner: mattermost
     group: mattermost
+    recurse: yes
     mode: 'g+w'
 
 - name: Creating MYSQL User
@@ -93,7 +136,7 @@
   template:
     src: "mattermost.service.j2"
     dest: /lib/systemd/system/mattermost.service
-  when: ubuntu_os.stdout | regex_search("20.04") or ubuntu_os.stdout | regex_search("18.04") 
+  when: os_check.stdout | regex_search("Ubuntu 20") or os_check.stdout | regex_search("Ubuntu 18") 
 
 - name: Set Mattermost Config file
   template:
@@ -101,7 +144,7 @@
     dest: /etc/systemd/system/mattermost.service
     mode: '0664'
   when:
-        - cent_os.stdout | regex_search("CentOS")
+        - os_check.stdout | regex_search("CentOS")
 
 - name: reload service mattermost, in all cases
   systemd:
@@ -114,21 +157,21 @@
   template:
     src: "mattermost_nginx.conf.j2"
     dest: /etc/nginx/sites-available/{{ mattermost_doamin_name }}
-  when: ubuntu_os.stdout | regex_search("20.04") or ubuntu_os.stdout | regex_search("18.04") 
+  when: os_check.stdout | regex_search("Ubuntu 20") or os_check.stdout | regex_search("Ubuntu 18") 
 
 - name: Sets Nginx conf file
   template:
     src: "mattermost_nginx.conf.j2"
-    dest: /etc/nginx/conf.d/{{ mattermost_doamin_name }}
+    dest: /etc/nginx/conf.d/{{ mattermost_doamin_name }}.conf
   when:
-        - cent_os.stdout | regex_search("CentOS")
+        - os_check.stdout | regex_search("CentOS")
     
 - name: Create symbolic link 
   file:
     src: /etc/nginx/sites-available/{{ mattermost_doamin_name }}
     dest: /etc/nginx/sites-enabled/{{ mattermost_doamin_name }}
     state: link
-  when: ubuntu_os.stdout | regex_search("20.04") or ubuntu_os.stdout | regex_search("18.04") 
+  when: os_check.stdout | regex_search("Ubuntu 20") or os_check.stdout | regex_search("Ubuntu 18") 
 
 # - name: Restart service Nginx, if not started
 #   service:
