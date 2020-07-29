@@ -173,10 +173,15 @@
     state: link
   when: os_check.stdout | regex_search("Ubuntu 20") or os_check.stdout | regex_search("Ubuntu 18") 
 
+- name: Execute Nginx Permissions
+  command: chown -R nginx:nginx /var/cache/nginx/
+  when:
+    - os_check.stdout | regex_search("CentOS Linux 7")
+
 - name: Execute SetSeBool
   command: setsebool -P httpd_can_network_connect 1
   when:
-    - os_check.stdout | regex_search("CentOS Linux 8")
+    - os_check.stdout | regex_search("CentOS")
 
 # - name: Restart service Nginx, if not started
 #   service:
