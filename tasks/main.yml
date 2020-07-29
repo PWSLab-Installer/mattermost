@@ -124,7 +124,7 @@
   ignore_errors: yes
 
 - name: Granting Permissions
-  command: mysql --host=localhost --user=root  -e "GRANT ALL PRIVILEGES ON mattermost.* TO 'mmuser'@'%';"
+  command: mysql --host=localhost --user=root  -e "GRANT ALL PRIVILEGES ON mattermost.* TO 'mmuser'@'localhost';"
   ignore_errors: yes
 
 - name: Set Mattermost Config file
