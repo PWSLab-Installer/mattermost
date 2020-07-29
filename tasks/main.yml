@@ -176,7 +176,7 @@
 - name: Execute SetSeBool
   command: setsebool -P httpd_can_network_connect 1
   when:
-    - os_check.stdout | regex_search("CentOS")
+    - os_check.stdout | regex_search("CentOS Linux 8")
 
 # - name: Restart service Nginx, if not started
 #   service:
